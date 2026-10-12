@@ -15,15 +15,11 @@ label is not graded.
 
 **Pull request**
 
-[Link to the pull request you opened. It must be the pull request's own page on the Path
-Review repo, not your fork's branch page.]
+[Pull Request](https://github.com/codepath/pathreview-ai301-fa26-s3/pull/173)
 
 **Branch**
 
-[The name of the branch the pull request comes from, exactly as it appears in your fork.
-The naming shape is a type prefix, then the issue number, then a short description. **The
-issue number in the branch name must be the number of the issue the pull request fixes** —
-a name carrying any other number does not satisfy this field.]
+fix/59-faithfulness-token-overlap
 
 ## Eval iterations
 
@@ -32,28 +28,21 @@ fields.
 
 **Run history**
 
-[The agreement score of each run you did, in order. A single run is a complete answer if
-only one run occurred. **The last score in your list must match the agreement line in the
-`eval-run.txt` you committed** — that file is the record of your final run.]
+19/20 (first and only full run; the last score matches the agreement line in `eval-run.txt`: "agreement: 19/20 scored items  (bar: 18/20: PASS)").
 
 **Package analysis**
 
-[Pick one scored package (`pkg-01` through `pkg-20` — the four `calib-` packages are never
-scored). Name it by id, say what your rubric decided and what the gold label said, and
-explain why your rubric read it that way.]
+pkg-16 (kubernetes/minikube#23471). The gold label is accept ("honestly disclosed shortfall: image-load path fails loudly with before/after transcripts; the start-path behavior deliberately deferred with the maintainer discussion cited in plan and description"). My rubric said reject: it graded `checks-run` as fail and the other required checks as pass. The package's test evidence has the full repro transcript (corrupt tarball gives an error and exit 1, valid tarball control unchanged) but its only mention of the repo's own checks is the bare line "`go test ./pkg/minikube/machine/... ./cmd/...` passes", with no output. My `checks-run` pass condition says "Fail if ... the evidence says only 'tests pass' or 'cargo test passes' with no output and no named result", so the rubric held a correct, honestly scoped fix over one unpasted test claim. That is a strictness gap in my rubric, not a gold-label error: the repro, the diff, the deferral and the template were all fine.
 
 **Check rationale**
 
-[Quote one check from the `rubric.md` you uploaded to `tools/pr-precheck/`, exactly as it reads now.
-Then say why it reads that way — what you revised to get there, or what you rejected in
-favour of it.]
+"| plan-matches-diff | The changed files and hunks in the diff (live: `git diff main...HEAD`), read against the plan's in-scope list, its not-in-scope line, its named files, and any deviation note. | Pass if every changed file and every behavioral hunk is something the plan names or a recorded deviation covers, and every plan item the description presents as done is in the diff. A plan item the diff leaves out passes only when the plan, a deviation note, or the description itself says it was deferred. Fail if the diff adds behavior, a new flag or config option, a rename, a refactor, or an edit to a file the plan scopes out or never names, with no deviation note. Also fail if a plan item is missing from the diff and nothing discloses it. | required |"
+
+It reads this way because the silent-drift packages fail in two directions: extra behavior the plan scoped out (pkg-03, pkg-06, pkg-09) and a promised piece missing (pkg-17). The check compares the diff to the plan's lists, not to the description. I added the "passes only when ... deferred" sentence so that disclosed shortfalls (pkg-13, pkg-16) are not held as drift; I rejected a simpler "every plan item must be in the diff" rule because it would fail the honest-deferral accepts. Claims in the description are graded separately in description-matches-diff so one check does not carry both jobs.
 
 **Trade-offs**
 
-[Every check gives something up. Any one of these is a complete answer: a package whose
-result it changes, a canary you re-ran with `--only`, a case you accept it will miss, or a
-stated reason nothing changed elsewhere. "Nothing changed, and here is how I know" earns
-the point in full when the reason follows.]
+I stopped at 19/20 because the bar is 18/20 and all five categories matched (clear-accept 6/7, not-tested 4/4, silent-drift 4/4, standards-wall 2/2, unreviewable 3/3). The one miss is pkg-16 on `checks-run`. Loosening `checks-run` so that a bare "go test passes" line is accepted when the repro evidence is decisive would probably fix pkg-16, but it risks flipping the not-tested rejects (pkg-04 and pkg-10 both rest on "tests pass"-style claims), so I would re-run those two as canaries with `--only` before keeping the change. I accept that the tool is stricter than gold on honest, well-scoped PRs that skip pasting the suite output.
 
 ---
 
